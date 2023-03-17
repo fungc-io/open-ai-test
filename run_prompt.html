@@ -1,0 +1,124 @@
+<html>
+<style>
+    #input,
+    #output {
+        width: 100%;
+        height: 100px;
+    }
+
+    body {
+        max-width: 100vw;
+    }
+
+    pre {
+        white-space: pre-wrap;
+    }
+</style>
+<script>
+    async function onProcess() {
+
+        let key = document.getElementById("api-key").value;
+        let input = document.getElementById("input").value;
+        if (!key) {
+            alert("No API Key");
+            return
+        }
+        if (!input) {
+            alert("Invalid input");
+            return
+        }
+
+        let prompt = "";
+
+        prompt = input.replace(/(?:\r\n|\r|\n)/g, '\\n');
+        clearResult()
+        printStatus("loading...")
+        const start = Date.now();
+        await runAi(prompt)
+        const secSpent = (Date.now() - start) / 1000;
+        document.getElementById("time").innerHTML = secSpent + " seconds"
+    }
+    async function runAi(prompt, key) {
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Accept", "application/json");
+        myHeaders.append("Authorization", "Bearer " + key);
+
+        var raw = JSON.stringify({
+            "model": "gpt-3.5-turbo",
+            "messages": [{
+                "role": "user",
+                "content": prompt,
+                "name": "proidentvoluptate"
+            }],
+            "temperature": 1,
+            "top_p": 1,
+            "n": 1,
+            "stream": false,
+            "stop": "elit proident sint",
+            "presence_penalty": 0,
+            "frequency_penalty": 0,
+            "user": "user-1234"
+        });
+
+        var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+        };
+        try {
+            let response = await fetch("https://api.openai.com/v1/chat/completions", requestOptions)
+            let result = await response.text()
+            printResult(JSON.parse(result))
+            printStatus("done")
+        } catch (error) {
+            console.log('error', error)
+            printStatus("Error: " + error)
+        }
+    }
+
+    function printResult(result) {
+        console.log(result)
+        console.log(result.usage)
+        document.getElementById("usage").innerHTML = JSON.stringify(result.usage, null, 3)
+        console.log(result.choices[0].message.content)
+        document.getElementById("output").innerHTML = result.choices[0].message.content
+    }
+
+    function printStatus(status) {
+        document.getElementById("status").innerHTML = status
+    }
+
+    function clearResult() {
+        document.getElementById("time").innerHTML = ""
+        document.getElementById("usage").innerHTML = ""
+        document.getElementById("output").innerHTML = ""
+    }
+</script>
+
+<body>
+    <div>
+        <h2>API Key</h2>
+        <input id="api-key"></input>
+    </div>
+    <div>
+        <h2>Input</h2>
+        <textarea id="input"></textarea>
+        <br><button id="process" onClick="onProcess()">Run</button>
+    </div>
+    <div>
+        <div id="status"></div>
+        <hr />
+        <h2>Output</h2>
+        <div id="time"></div>
+        <div>
+            <pre id="usage"></pre>
+        </div>
+        <div>
+            <pre id="output"></pre>
+        </div>
+    </div>
+</body>
+
+</html>
