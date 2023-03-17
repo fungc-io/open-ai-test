@@ -34,7 +34,7 @@
         clearResult()
         printStatus("loading...")
         const start = Date.now();
-        await runAi(prompt)
+        await runAi(prompt, key)
         const secSpent = (Date.now() - start) / 1000;
         document.getElementById("time").innerHTML = secSpent + " seconds"
     }
